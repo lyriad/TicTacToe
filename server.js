@@ -100,7 +100,7 @@ const handleMessage = message => {
 
             if (isWinner) {
                 games[msg.game.gameId].players.forEach(gamePlayer => {
-                    clients[gamePlayer.clientId].connection.send(JSON.stringify({ 'method': 'end', 'winner': player.symbol }))
+                    clients[gamePlayer.clientId].connection.send(JSON.stringify({ 'method': 'end', 'winner': player.clientId }))
                 })
                 break;
 

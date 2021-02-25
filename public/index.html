@@ -1,36 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/style.css">
     <title>TicTacToe</title>
 </head>
-
 <body>
     <div class="topDiv">
 
-        <h1>
-            Tic Tac Toe
-            <br/>
-            <span id="client-id-label"></span>
-        </h1>
+        <div class="header">
+            <h1>TicTacToe</h1>
+        </div>
 
         <div class="container" id="container">
 
             <div class="sidebar" id="sidebar">
-                <div class="flex-col1">
-                    <!-- user details goes here -->
-                </div>
                 <div class="flex-col2">
-                    <button class="newGame" id="newGame" onclick="createGame()">New Game</button>
-                    <label for="joinGame" class="joinLabel">Available Games</label>
+                    <p id="client-id-label" class="player-name">Player 0</p>
+                    <hr style="margin-left: 1rem; margin-right: 1rem;" />
+                    <button onclick="createGame()">Crear nueva sesion</button>
+                    <label for="joinGame" class="joinLabel">Sesiones disponibles</label>
                     <ul class="currGames" id="games-list">
-                        <li>No games </li>
+                        <li>No hay sesiones</li>
+                        <li class="game-option">328943</li>
+                        <li class="game-option">824742</li>
                     </ul>
-                    <button id="join-game-btn" type="submit">Join</button>
-
+                    <button id="join-game-btn">Unirse</button>
                 </div>
 
             </div>
@@ -52,5 +48,4 @@
     </div>
     <script type="text/javascript" src="/js/index.js" defer></script>
 </body>
-
 </html>

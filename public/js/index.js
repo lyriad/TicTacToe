@@ -11,15 +11,14 @@ const connectToSocketServer = () => {
     socket.onmessage = msg => {
 
         const data = JSON.parse(msg.data);
-        console.log(data);
-        
+
         switch (data.method) {
 
             case 'connect':
                 clientId = data.clientId;
                 let clientIdLabel = document.getElementById('client-id-label');
                 if (clientIdLabel != null) {
-                    clientIdLabel.innerText = data.clientId;
+                    clientIdLabel.innerText = `${data.clientId}`;
                 }
                 break;
 
@@ -77,24 +76,31 @@ const joinedGame = (game, index) => {
 
 const joinGame = e => {
 
-    let joinGameBtn = document.getElementById('join-game-btn');
     gameId = e.target.innerText;
-    joinGameBtn.addEventListener('click', () => {
-        socket.send(JSON.stringify({
-            'method': 'join',
-            'clientId': clientId,
-            'gameId': gameId
-        }))
-    }, { once: true })
+    let listElements = document.querySelectorAll('li.game-option');
+
+    for (let li of listElements) {
+        li.classList.remove('selected');
+    }
+
+    let joinGameBtn = document.getElementById('join-game-btn');
+    e.target.classList.add('selected');
+
+    joinGameBtn.removeEventListener('click', requestJoinGame);
+    joinGameBtn.addEventListener('click', requestJoinGame, { once: true })
+}
+
+const requestJoinGame = () => {
+    socket.send(JSON.stringify({
+        'method': 'join',
+        'clientId': clientId,
+        'gameId': gameId
+    }))
 }
 
 const listGames = games => {
 
     let gamesList = document.getElementById('games-list');
-    if (gamesList == null) {
-        alert('Game list not found');
-        return;
-    }
 
     while (gamesList.firstChild) {
         gamesList.removeChild(gamesList.lastChild)
@@ -102,6 +108,8 @@ const listGames = games => {
 
     games.forEach(gameId => {
         const li = document.createElement('li');
+        li.classList.add('game-option');
+        li.dataset.game = gameId;
         li.addEventListener('click', joinGame);
         li.innerText = gameId;
         gamesList.appendChild(li);
@@ -111,16 +119,7 @@ const listGames = games => {
 const updateBoard = () => {
 
     const gameBoard = document.getElementById('game-board');
-    if (gameBoard == null) {
-        alert('Board not found');
-        return;
-    }
-    
     const cells = document.querySelectorAll('#cell');
-    if (cells == null) {
-        alert('Cells not found');
-        return;
-    }
 
     gameBoard.style.display = 'grid';
     gameBoard.classList.add(symbol == 'x' ? 'x' : 'circle')
@@ -148,12 +147,12 @@ const updateBoard = () => {
 const makeMove = e => {
 
     if (game.players.length < 2) {
-        alert('Waiting for another player to join');
+        alert('Esperando por otro jugador');
         return;
     }
 
     if (!isTurn || e.target.classList.contains('x') || e.target.classList.contains('circle')) {
-        alert('Not your turn');
+        alert('No es tu turno');
         return;
     }
 
