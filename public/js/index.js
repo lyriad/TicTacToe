@@ -1,11 +1,13 @@
-let clientId, gameId, isTurn = false, symbol, socket, board, game;
-
+let username, gameId, isTurn = false, symbol, socket, board, game;
+let modal = document.getElementById("myModal");
+modal.style .display = 'block';
 const connectBtn = document.getElementById('connectBtn')
 const newGameBtn = document.getElementById('newGame')
 
 const connectToSocketServer = () => {
 
-    socket = new WebSocket('ws://localhost:9000')
+    const nameinput = document.getElementById('username-input');
+    socket = new WebSocket(`ws://localhost:9000?username=${nameinput.value}`)
     socket.onopen = e => {};
 
     socket.onmessage = msg => {
@@ -15,11 +17,12 @@ const connectToSocketServer = () => {
         switch (data.method) {
 
             case 'connect':
-                clientId = data.clientId;
+                username = data.username;
                 let clientIdLabel = document.getElementById('client-id-label');
                 if (clientIdLabel != null) {
-                    clientIdLabel.innerText = `${data.clientId}`;
+                    clientIdLabel.innerText = data.username;
                 }
+                modal.style.display = 'none';
                 break;
 
             case 'create':
@@ -43,6 +46,7 @@ const connectToSocketServer = () => {
             case 'end':
                 alert(`El ganador es ${data.winner}`)
                 break;
+
             case 'draw':
                 alert('Its a draw')
                 break
@@ -59,9 +63,14 @@ const connectToSocketServer = () => {
 };
 
 const createGame = () => {
+
+    if (socket == null) {
+        return;
+    }
+
     socket.send(JSON.stringify({
         'method': 'create',
-        'clientId': clientId
+        'username': username
     }));
 }
 
@@ -91,9 +100,14 @@ const joinGame = e => {
 }
 
 const requestJoinGame = () => {
+
+    if (socket == null) {
+        return;
+    }
+
     socket.send(JSON.stringify({
         'method': 'join',
-        'clientId': clientId,
+        'username': username,
         'gameId': gameId
     }))
 }
@@ -105,6 +119,9 @@ const listGames = games => {
     while (gamesList.firstChild) {
         gamesList.removeChild(gamesList.lastChild)
     }
+
+    let joinGameBtn = document.getElementById('join-game-btn');
+    joinGameBtn.disabled = games.length == 0;
 
     games.forEach(gameId => {
         const li = document.createElement('li');
@@ -138,13 +155,17 @@ const updateBoard = () => {
     }
 
     game.players.forEach(player => {
-        if (player.clientId == clientId && player.isTurn == true) {
+        if (player.username == username && player.isTurn == true) {
             isTurn = true;
         }
     })
 }
 
 const makeMove = e => {
+
+    if (socket == null) {
+        return;
+    }
 
     if (game.players.length < 2) {
         alert('Esperando por otro jugador');
@@ -174,7 +195,4 @@ const makeMove = e => {
     isTurn = false
     game.board = board;
     socket.send(JSON.stringify({ 'method': 'makeMove', 'game': game }))
-    
 }
-
-connectToSocketServer();

@@ -2,7 +2,7 @@ const http = require('http');
 const WebSocket = require('websocket').server
 
 const games = {};
-const clients = {};
+const players = {};
 const CROSS_SYMBOL = 'x';
 const CIRCLE_SYMBOL = 'o';
 const WIN_STATES = Array([0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]);
@@ -22,9 +22,12 @@ wss.on('request', req => {
     conn.on('close', () => { conn.send('Disconnected from server'); })
     conn.on('message', handleMessage)
 
-    const clientId = 'Player ' + Object.keys(clients).length;
-    clients[clientId] = { 'clientId': clientId, 'connection': conn }
-    conn.send(JSON.stringify({ 'method': 'connect', 'clientId': clients[clientId].clientId }))
+    const username = req.resourceURL.query.username != null
+        ? req.resourceURL.query.username
+        : 'Player ' + Object.keys(players).length;
+
+    players[username] = { 'username': username, 'connection': conn }
+    conn.send(JSON.stringify({ 'method': 'connect', 'username': players[username].username }))
 
     sendAvailableGames();
 });
@@ -40,7 +43,7 @@ const handleMessage = message => {
 
         case 'create':
             player = {
-                'clientId': msg.clientId,
+                'username': msg.username,
                 'symbol': CROSS_SYMBOL,
                 'isTurn': true,
                 'wins': 0,
@@ -52,14 +55,14 @@ const handleMessage = message => {
                 'players': [player],
                 'board': emptyBoard
             };
-            clients[msg.clientId].connection.send(JSON.stringify({ 'method': 'create', 'game': games[gameId] }));
+            players[msg.username].connection.send(JSON.stringify({ 'method': 'create', 'game': games[gameId] }));
             updateGameBoard(games[gameId]);
             sendAvailableGames();
             break
 
         case 'join':
             player = {
-                'clientId': msg.clientId,
+                'username': msg.username,
                 'symbol': CIRCLE_SYMBOL,
                 'isTurn': false,
                 'wins': 0,
@@ -67,19 +70,12 @@ const handleMessage = message => {
             }
             games[msg.gameId].players.push(player);
 
-            clients[msg.clientId].connection.send(JSON.stringify({
+            players[msg.username].connection.send(JSON.stringify({
                 'method': 'join',
                 'game': games[msg.gameId]
             }));
             updateGameBoard(games[msg.gameId]);
             sendAvailableGames();
-            break;
-
-        case 'clear':
-            games = {};
-            clients = {
-                clientId: clients[clientId],
-            };
             break;
 
         case 'makeMove':
@@ -100,7 +96,7 @@ const handleMessage = message => {
 
             if (isWinner) {
                 games[msg.game.gameId].players.forEach(gamePlayer => {
-                    clients[gamePlayer.clientId].connection.send(JSON.stringify({ 'method': 'end', 'winner': player.clientId }))
+                    players[gamePlayer.username].connection.send(JSON.stringify({ 'method': 'end', 'winner': player.username }))
                 })
                 break;
 
@@ -115,7 +111,7 @@ const handleMessage = message => {
 
                 if (isDraw) {
                     games[msg.game.gameId].players.forEach(gamePlayer => {
-                        clients[gamePlayer.clientId].connection.send(JSON.stringify({ 'method': 'draw' }))
+                        players[gamePlayer.username].connection.send(JSON.stringify({ 'method': 'draw' }))
                     })
                     break;
                 }
@@ -132,7 +128,7 @@ const handleMessage = message => {
 const updateGameBoard = game => {
 
     game.players.forEach(player => {
-        clients[player.clientId].connection.send(JSON.stringify({ 'method': 'updateBoard', 'game': game }))
+        players[player.username].connection.send(JSON.stringify({ 'method': 'updateBoard', 'game': game }))
     })
 
 }
@@ -146,7 +142,7 @@ const sendAvailableGames = () => {
         }
     }
 
-    for (const id of Object.keys(clients)) {
-        clients[id].connection.send(JSON.stringify({ 'method': 'games', 'games': availableGames }))
+    for (const username of Object.keys(players)) {
+        players[username].connection.send(JSON.stringify({ 'method': 'games', 'games': availableGames }))
     }
 }

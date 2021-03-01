@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/style.css">
     <title>TicTacToe</title>
 </head>
+
 <body>
     <div class="topDiv">
 
@@ -44,6 +46,19 @@
             </div>
         </div>
     </div>
-    <script type="text/javascript" src="/js/index.js" defer></script>
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>TicTacToe</h2>
+            </div>
+            <div class="modal-body">
+                <input id="username-input" type="text" placeholder="Username">
+                <button onclick="connectToSocketServer()">Conectar</button>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="/js/index.js"></script>
+    <script type="text/javascript" src="/js/modal.js"></script>
 </body>
+
 </html>
